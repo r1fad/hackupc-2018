@@ -125,6 +125,44 @@ void drawText(String textToPrint, uint16_t color) {
   
 }
 
+void clearScreen() {
+
+  matrix.fillScreen(matrix.Color333(0,0,0));
+  
+}
+
+void flashWarning() {
+  
+  clearScreen();
+  
+  int flashes = 50;
+  while (flashes >= 0) {
+
+    matrix.drawCircle(16, 10, 8, matrix.Color333(7, 0, 0));
+    matrix.fillCircle(16, 10, 8, matrix.Color333(7, 0, 0));
+    matrix.drawRect(11,9,11, 3, matrix.Color333(255, 255, 255));
+    matrix.fillRect(11,9,11, 3, matrix.Color333(255, 255, 255));
+    delay(500);
+    matrix.drawCircle(16, 10, 10, matrix.Color333(7, 0, 0));
+    matrix.fillCircle(16, 10, 10, matrix.Color333(7, 0, 0));
+
+    matrix.drawRect(11,9,11, 3, matrix.Color333(255, 255, 255));
+    matrix.fillRect(11,9,11, 3, matrix.Color333(255, 255, 255));
+  
+    matrix.setCursor(0, 22);    // start at top left, with one pixel of spacing
+    matrix.setTextSize(1);     // size 1 == 8 pixels high
+    matrix.setTextWrap(false); // Don't wrap at end of line - will do ourselves
+  
+    matrix.setTextColor(matrix.Color333(255, 255, 255));
+    matrix.println("Be gone!");
+    delay(500);
+    clearScreen();
+
+    flashes -= 1;
+    
+  }
+}
+
 int stackOverflowBarX = 0;
 int stackOverflowBarY = 28;
 
@@ -168,8 +206,8 @@ void loop() {
         drawSafeToApproach();
         state = 0;
         break;
-      case 107: //key word detected
-        drawDanger();
+      case 103: //key word detected
+        flashWarning();
         break;
     }
      // say what you got:
