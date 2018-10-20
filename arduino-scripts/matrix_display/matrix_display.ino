@@ -34,8 +34,11 @@ int state = 0; // 0 for safe, 1 for danger, 2 for ultra danger thingy;
 #define F2(progmem_ptr) (const __FlashStringHelper *)progmem_ptr
 
 const char str[] PROGMEM = "GO AWAY!   GO AWAY!  GO AWAY!  GO AWAY! GO AWAY!  GO AWAY!  GO AWAY! GO AWAY! GO AWAY!  GO AWAY!";
+const char safe[] PROGMEM = "SAFE TO APPROACH";
+
 int16_t    textX         = matrix.width(),
            textMin       = sizeof(str) * -12,
+           textMin2      = sizeof(safe) * -6,
            hue           = 0;
 
 void drawSafeToApproach() {
@@ -136,7 +139,6 @@ void flashWarning() {
     matrix.drawRect(10,8,13, 4, matrix.Color333(255, 255, 255));
     matrix.fillRect(10,8,13, 4, matrix.Color333(255, 255, 255));
    
-
     matrix.setTextColor(matrix.ColorHSV(hue, 255, 255, true));
     matrix.setCursor(textX, 22);
     matrix.print(F2(str));
@@ -153,12 +155,11 @@ void flashWarning() {
     matrix.drawRect(9,7,15, 5, matrix.Color333(255, 255, 255));
     matrix.fillRect(9,7,15, 5, matrix.Color333(255, 255, 255));
 
-
-    matrix.setTextColor(matrix.ColorHSV(hue, 255, 255, true));
+    matrix.setTextColor(matrix.ColorHSV(hue, 100, 255, true));
     matrix.setCursor(textX, 22);
     matrix.print(F2(str));
     // Move text left (w/wrap), increase hue
-    if((--textX) < textMin) textX = matrix.width();
+    if((--textX) < textMin2) textX = matrix.width();
     hue += 7;
     if(hue >= 1536) hue -= 1536;
 
@@ -173,22 +174,42 @@ void flashWarning() {
   
 }
 
-int stackOverflowBarX = 0;
-int stackOverflowBarY = 28;
+int stackOverflowBar = 0;
 int previousState = 0;
 
 
-void incrementStackOverflowBar()
+void displayStackOverflowBar()
 {
-  matrix.drawPixel(stackOverflowBarX,stackOverflowBarY,matrix.Color333(255,10,0));
-  stackOverflowBarX++;
-  if(stackOverflowBarX == 32)
+  for(int i = 0; i< 32;++i)
+    for(int j = 21; j< 32; ++j)
+      matrix.drawPixel(i,j,BLACK);
+  int y = 22;
+  int x = 0;
+  for(int i = 0; i< stackOverflowBar; ++i)
   {
-    stackOverflowBarX = 0;
-    stackOverflowBarY ++;
+    matrix.drawPixel(x,y,matrix.Color333(255,10,0));
+    if((++x) > 32) {y ++; x = 0;}
+    delay(10);
   }
+  
 }
 
+void scrollSafeText()
+{
+  for(int i = 0; i< 32;++i)
+    for(int j = 21; j< 32; ++j)
+      matrix.drawPixel(i,j,BLACK);
+      
+  matrix.setTextColor(matrix.ColorHSV(hue, 100, 100, true));
+    matrix.setCursor(textX, 22);
+    matrix.print(F2(safe));
+    // Move text left (w/wrap), increase hue
+    if((--textX) < textMin2) textX = matrix.width();
+    hue += 7;
+    Serial.println(textX,textMin);
+    if(hue >= 1536) hue -= 1536;
+    delay(50);
+}
 void setup() {
    Serial.begin(9600);
    matrix.begin();
@@ -206,26 +227,29 @@ void loop() {
     //Take appropriate action based on flag
     switch (incomingByte) 
     {
-      case 115: //s
-        incrementStackOverflowBar();
+      case 's': //User went to StackOverflow, increment the bar
+        stackOverflowBar++;
+        if(state ==1) displayStackOverflowBar();
         break;
-      case 100: // Danger d 
+      case 'd': // Don't approach 
         drawDanger();
+        displayStackOverflowBar();
         state = 1;
         break;
-      case 102: // Safe f
+      case 'a': // Safe to approach
         drawSafeToApproach();
         state = 0;
         break;
-      case 103: //g
+      case 'g': // GO AWAY!!!1!!
         flashWarning();
+        state = 1;
         drawDanger();
-        
+        displayStackOverflowBar();
         break;
     }
-
-    Serial.print("I received: ");
-    Serial.println(incomingByte, DEC);
   }
-          
+          if(state == 0)
+    {
+      scrollSafeText();
+    } 
 }
