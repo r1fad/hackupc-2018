@@ -75,20 +75,43 @@ void drawSafeToApproach() {
 //  // fill the screen with 'black'
 //  matrix.fillScreen(matrix.Color333(0, 0, 0));
 //
+}
+
+void drawDanger() {
+  // Draw white circle
+  matrix.drawCircle(16, 10, 10, matrix.Color333(255, 255, 255));
+  matrix.fillCircle(16, 10, 10, matrix.Color333(255, 255, 255));
+
+  // Draw smaller red circle
+  matrix.drawCircle(16, 10, 8, matrix.Color333(7, 0, 0));
+  matrix.fillCircle(16, 10, 8, matrix.Color333(7, 0, 0));
+
+  // Draw white rectangle
+  matrix.drawRect(11,9,11, 3, matrix.Color333(255, 255, 255));
+  matrix.fillRect(11,9,11, 3, matrix.Color333(255, 255, 255));
+
+  
+  
+  
+}
+
+void drawText(String textToPrint, uint16_t color) {
+
   // draw some text!
   matrix.setCursor(0, 22);    // start at top left, with one pixel of spacing
   matrix.setTextSize(1);     // size 1 == 8 pixels high
   matrix.setTextWrap(false); // Don't wrap at end of line - will do ourselves
 
-  matrix.setTextColor(matrix.Color333(7,7,7));
-  matrix.println("Safe!");
+  matrix.setTextColor(color);
+  matrix.println(textToPrint);
   
 }
 
 void setup() {
 
    matrix.begin();
-   drawSafeToApproach();
+   //drawSafeToApproach();
+   drawDanger();
 }
 
 void loop() {
