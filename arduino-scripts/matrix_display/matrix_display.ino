@@ -16,8 +16,20 @@
 #define C   A2
 #define D   A3
 
-RGBmatrixPanel matrix(A, B, C, D, CLK, LAT, OE, false);
+#define BLACK   0x0000
+#define BLUE    0x001F
+#define RED     0xF800
+#define GREEN   0x07E0
+#define CYAN    0x07FF
+#define MAGENTA 0xF81F
+#define YELLOW  0xFFE0
+#define WHITE   0xFFFF
+#define GREY     0xD6BA
 
+RGBmatrixPanel matrix(A, B, C, D, CLK, LAT, OE, false);
+int eyeLeftX = 12;
+int eyeRightX = 22;
+int state = 0; // 0 for safe, 1 for danger, 2 for ultra danger thingy;
 //void drawBezierCurve(int startX, int startY, int endX, int endY) {
 //  double midPoint = (endX - startX)/2;
 //  double splineHeight = startY*1.9;
@@ -61,13 +73,27 @@ void drawSafeToApproach() {
   matrix.fillCircle(16, 10, 10, matrix.Color333(0, 7, 0));
 
   // Write text inside circle
-  matrix.setCursor(8, 6);
-  matrix.setTextSize(1);
-  matrix.setTextWrap(false);
+//  matrix.setCursor(8, 6);
+//  matrix.setTextSize(1);
+//  matrix.setTextWrap(false);
+//
+//  matrix.setTextColor(matrix.Color333(255, 255, 255));
+//  matrix.println("Go!");
+   matrix.drawCircle(11, 8, 3, matrix.Color333(255, 255, 255));
+   matrix.fillCircle(11, 8, 3, matrix.Color333(255, 255, 255));
 
-  matrix.setTextColor(matrix.Color333(255, 255, 255));
-  matrix.println("Go!");
+   matrix.drawCircle(21, 8, 3, matrix.Color333(255, 255, 255));
+   matrix.fillCircle(21, 8, 3, matrix.Color333(255, 255, 255));
+   drawEyes(BLACK);
+}
 
+void drawEyes(int color)
+{
+  matrix.drawRect(eyeRightX,7,3, 3, color);
+   matrix.fillRect(eyeRightX,7,3, 3, color);
+
+   matrix.drawRect(eyeLeftX,7,3, 3, color);
+   matrix.fillRect(eyeLeftX,7,3, 3, color);
 }
 
 void drawDanger() {
@@ -102,6 +128,7 @@ void drawText(String textToPrint, uint16_t color) {
 int stackOverflowBarX = 0;
 int stackOverflowBarY = 28;
 
+
 void incrementStackOverflowBar()
 {
   matrix.drawPixel(stackOverflowBarX,stackOverflowBarY,matrix.Color333(255,10,0));
@@ -118,6 +145,7 @@ void setup() {
    matrix.begin();
    // Default start state
    drawSafeToApproach();
+   randomSeed(analogRead(4));
 }
 
 void loop() {
@@ -134,16 +162,19 @@ void loop() {
         break;
       case 100: // Danger
         drawDanger();
+        state = 1;
         break;
       case 102: // Safe
         drawSafeToApproach();
+        state = 0;
         break;
       case 107: //key word detected
         drawDanger();
         break;
     }
-    // say what you got:
+     // say what you got:
     Serial.print("I received: ");
     Serial.println(incomingByte, DEC);
-        }
+  }
+          
 }
