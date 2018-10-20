@@ -98,7 +98,7 @@ void drawEyes(int color)
 
 void drawDanger() {
   // Clear any existing drawings.
-  matrix.fillScreen(matrix.Color333(0,0,0));
+  //matrix.fillScreen(matrix.Color333(0,0,0));
   // Draw white circle
   matrix.drawCircle(16, 10, 10, matrix.Color333(255, 255, 255));
   matrix.fillCircle(16, 10, 10, matrix.Color333(255, 255, 255));
@@ -135,36 +135,53 @@ void flashWarning() {
   
   clearScreen();
   
-  int flashes = 50;
+  delay(200);
+  int flashes = 20;
   while (flashes >= 0) {
 
     matrix.drawCircle(16, 10, 8, matrix.Color333(7, 0, 0));
     matrix.fillCircle(16, 10, 8, matrix.Color333(7, 0, 0));
     matrix.drawRect(11,9,11, 3, matrix.Color333(255, 255, 255));
     matrix.fillRect(11,9,11, 3, matrix.Color333(255, 255, 255));
-    delay(500);
+    delay(200);
     matrix.drawCircle(16, 10, 10, matrix.Color333(7, 0, 0));
     matrix.fillCircle(16, 10, 10, matrix.Color333(7, 0, 0));
-
-    matrix.drawRect(11,9,11, 3, matrix.Color333(255, 255, 255));
-    matrix.fillRect(11,9,11, 3, matrix.Color333(255, 255, 255));
-  
-    matrix.setCursor(0, 22);    // start at top left, with one pixel of spacing
+    matrix.drawRect(10,8,13, 4, matrix.Color333(255, 255, 255));
+    matrix.fillRect(10,8,13, 4, matrix.Color333(255, 255, 255));
+    
+    matrix.setCursor(9, 22);    // start at top left, with one pixel of spacing
     matrix.setTextSize(1);     // size 1 == 8 pixels high
     matrix.setTextWrap(false); // Don't wrap at end of line - will do ourselves
   
     matrix.setTextColor(matrix.Color333(255, 255, 255));
-    matrix.println("Be gone!");
-    delay(500);
+    matrix.println("GO!");
+    delay(200);
+    clearScreen();
+         // start at top left, with one pixel of spacing
+    matrix.setTextSize(1);     // size 1 == 8 pixels high
+    matrix.setCursor(3, 23);
+    matrix.setTextWrap(false); // Don't wrap at end of line - will do ourselves
+  
+    matrix.setTextColor(matrix.Color333(255, 255, 255));
+    matrix.println("AWAY!");
+    matrix.drawCircle(16, 10, 12, matrix.Color333(7, 0, 0));
+    matrix.fillCircle(16, 10, 12, matrix.Color333(7, 0, 0));
+    matrix.drawRect(9,7,15, 5, matrix.Color333(255, 255, 255));
+    matrix.fillRect(9,7,15, 5, matrix.Color333(255, 255, 255));
+    
+
+    delay(200);
     clearScreen();
 
     flashes -= 1;
     
   }
+  
 }
 
 int stackOverflowBarX = 0;
 int stackOverflowBarY = 28;
+int previousState = 0;
 
 
 void incrementStackOverflowBar()
@@ -198,16 +215,18 @@ void loop() {
       case 115: //s
         incrementStackOverflowBar();
         break;
-      case 100: // Danger
+      case 100: // Danger d 
         drawDanger();
         state = 1;
         break;
-      case 102: // Safe
+      case 102: // Safe f
         drawSafeToApproach();
         state = 0;
         break;
       case 103: //key word detected
         flashWarning();
+        drawDanger();
+        
         break;
     }
      // say what you got:
