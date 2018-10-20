@@ -27,42 +27,16 @@
 #define GREY     0xD6BA
 
 RGBmatrixPanel matrix(A, B, C, D, CLK, LAT, OE, false);
+
 int eyeLeftX = 12;
 int eyeRightX = 22;
 int state = 0; // 0 for safe, 1 for danger, 2 for ultra danger thingy;
-//void drawBezierCurve(int startX, int startY, int endX, int endY) {
-//  double midPoint = (endX - startX)/2;
-//  double splineHeight = startY*1.9;
-////
-////  Serial.println(splineHeight);
-////  
-////  double startPositionVectorX = startX - midPoint;
-////  double startPositionVectorY = startY - splineHeight;
-////
-////  Serial.println(startPositionVectorY);
-////
-////  double endPositionVectorX = endX - midPoint;
-////  double endPositionVectorY = endY - splineHeight;
-////
-////  Serial.println(endPositionVectorY);
-//  
-//  double t = 0.0;
-//  double t_step = 0.01;
-//  while (t <= 1) {
-//
-//    double pixelToColorX = pow((1-t),2)*startX + 2*(1-t)*t*midPoint + pow(t,2)*endX;
-//    double pixelToColorY = pow((1-t),2)*startY + 2*(1-t)*t*ceil(splineHeight) + pow(t,2)*endY;
-//
-//
-//    Serial.println(pixelToColorX);
-//    Serial.println(pixelToColorY);
-//    Serial.println(t);
-//    
-//    matrix.drawPixel(ceil(pixelToColorX), ceil(pixelToColorY), matrix.Color333(255,255,255));
-//   
-//    t = t+t_step;
-//  }
-//}
+#define F2(progmem_ptr) (const __FlashStringHelper *)progmem_ptr
+
+const char str[] PROGMEM = "GO AWAY!   GO AWAY!  GO AWAY!  GO AWAY! GO AWAY!  GO AWAY!  GO AWAY! GO AWAY! GO AWAY!  GO AWAY!";
+int16_t    textX         = matrix.width(),
+           textMin       = sizeof(str) * -12,
+           hue           = 0;
 
 void drawSafeToApproach() {
 
@@ -117,7 +91,7 @@ void drawText(String textToPrint, uint16_t color) {
 
   // draw some text!
   matrix.setCursor(0, 22);    // start at top left, with one pixel of spacing
-  matrix.setTextSize(1);     // size 1 == 8 pixels high
+  matrix.setTextSize(5);     // size 1 == 8 pixels high
   matrix.setTextWrap(false); // Don't wrap at end of line - will do ourselves
 
   matrix.setTextColor(color);
@@ -135,45 +109,65 @@ void flashWarning() {
   
   clearScreen();
   
-  delay(200);
-  int flashes = 20;
+  delay(50);
+  int flashes = 50;
   while (flashes >= 0) {
 
+    //Draw circle
     matrix.drawCircle(16, 10, 8, matrix.Color333(7, 0, 0));
     matrix.fillCircle(16, 10, 8, matrix.Color333(7, 0, 0));
     matrix.drawRect(11,9,11, 3, matrix.Color333(255, 255, 255));
     matrix.fillRect(11,9,11, 3, matrix.Color333(255, 255, 255));
-    delay(200);
+
+    //Draw text
+    matrix.setTextColor(matrix.ColorHSV(hue, 255, 255, true));
+    matrix.setCursor(textX, 22);
+    matrix.print(F2(str));
+    // Move text left (w/wrap), increase hue
+    if((--textX) < textMin) textX = 32;
+    hue += 7;
+    if(hue >= 1536) hue -= 1536;
+
+    delay(50);
+    clearScreen();
+
     matrix.drawCircle(16, 10, 10, matrix.Color333(7, 0, 0));
     matrix.fillCircle(16, 10, 10, matrix.Color333(7, 0, 0));
     matrix.drawRect(10,8,13, 4, matrix.Color333(255, 255, 255));
     matrix.fillRect(10,8,13, 4, matrix.Color333(255, 255, 255));
+   
+
+    matrix.setTextColor(matrix.ColorHSV(hue, 255, 255, true));
+    matrix.setCursor(textX, 22);
+    matrix.print(F2(str));
+    // Move text left (w/wrap), increase hue
+    if((--textX) < textMin) textX = matrix.width();
+    hue += 7;
+    if(hue >= 1536) hue -= 1536;
     
-    matrix.setCursor(9, 22);    // start at top left, with one pixel of spacing
-    matrix.setTextSize(1);     // size 1 == 8 pixels high
-    matrix.setTextWrap(false); // Don't wrap at end of line - will do ourselves
-  
-    matrix.setTextColor(matrix.Color333(255, 255, 255));
-    matrix.println("GO!");
-    delay(200);
+    delay(50);
     clearScreen();
-         // start at top left, with one pixel of spacing
-    matrix.setTextSize(1);     // size 1 == 8 pixels high
-    matrix.setCursor(3, 23);
-    matrix.setTextWrap(false); // Don't wrap at end of line - will do ourselves
-  
-    matrix.setTextColor(matrix.Color333(255, 255, 255));
-    matrix.println("AWAY!");
+
     matrix.drawCircle(16, 10, 12, matrix.Color333(7, 0, 0));
     matrix.fillCircle(16, 10, 12, matrix.Color333(7, 0, 0));
     matrix.drawRect(9,7,15, 5, matrix.Color333(255, 255, 255));
     matrix.fillRect(9,7,15, 5, matrix.Color333(255, 255, 255));
-    
 
-    delay(200);
+
+    matrix.setTextColor(matrix.ColorHSV(hue, 255, 255, true));
+    matrix.setCursor(textX, 22);
+    matrix.print(F2(str));
+    // Move text left (w/wrap), increase hue
+    if((--textX) < textMin) textX = matrix.width();
+    hue += 7;
+    if(hue >= 1536) hue -= 1536;
+
+    delay(50);
     clearScreen();
 
     flashes -= 1;
+
+    
     
   }
   
@@ -198,13 +192,13 @@ void incrementStackOverflowBar()
 void setup() {
    Serial.begin(9600);
    matrix.begin();
-   // Default start state
+   matrix.setTextWrap(false); // Allow text to run off right edge
+   matrix.setTextSize(1);
    drawSafeToApproach();
-   randomSeed(analogRead(4));
 }
 
 void loop() {
-  // Do nothing -- image doesn't change
+
   if (Serial.available() > 0) {
     // read the incoming byte:
     char incomingByte = Serial.read();
@@ -223,13 +217,13 @@ void loop() {
         drawSafeToApproach();
         state = 0;
         break;
-      case 103: //key word detected
+      case 103: //g
         flashWarning();
         drawDanger();
         
         break;
     }
-     // say what you got:
+
     Serial.print("I received: ");
     Serial.println(incomingByte, DEC);
   }
