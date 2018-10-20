@@ -106,9 +106,21 @@ void drawText(String textToPrint, uint16_t color) {
   matrix.println(textToPrint);
   
 }
+int stackOverflowBarX = 0;
+int stackOverflowBarY = 28;
 
+void incrementStackOverflowBar()
+{
+  matrix.drawPixel(stackOverflowBarX,stackOverflowBarY,matrix.Color333(255,10,0));
+  stackOverflowBarX++;
+  if(stackOverflowBarX == 32)
+  {
+    stackOverflowBarX = 0;
+    stackOverflowBarY ++;
+  }
+}
 void setup() {
-
+   Serial.begin(9600);
    matrix.begin();
    //drawSafeToApproach();
    drawDanger();
@@ -116,4 +128,19 @@ void setup() {
 
 void loop() {
   // Do nothing -- image doesn't change
+  if (Serial.available() > 0) {
+    // read the incoming byte:
+    char incomingByte = Serial.read();
+
+    //Take appropriate action based on flag
+    switch (incomingByte) 
+    {
+      case 115: //s
+        incrementStackOverflowBar();
+        break;
+    }
+    // say what you got:
+    Serial.print("I received: ");
+    Serial.println(incomingByte, DEC);
+        }
 }
