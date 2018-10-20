@@ -1,7 +1,6 @@
 #!/bin/bash
-for i in `seq 1 5`;
+while true;
   do
-	echo $i
 	echo `osascript GetActiveWindows.scpt`
 	sleep 1
 done
