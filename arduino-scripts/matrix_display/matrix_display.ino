@@ -25,14 +25,17 @@
 #define YELLOW  0xFFE0
 #define WHITE   0xFFFF
 #define GREY     0xD6BA
-
+#define F2(progmem_ptr) (const __FlashStringHelper *)progmem_ptr
 RGBmatrixPanel matrix(A, B, C, D, CLK, LAT, OE, false);
 
 int eyeLeftX = 12;
 int eyeRightX = 22;
-int state = 0; // 0 for safe, 1 for danger, 2 for ultra danger thingy;
-#define F2(progmem_ptr) (const __FlashStringHelper *)progmem_ptr
+int eyePos = 0;
 
+int state = 0; // 0 for safe, 1 for danger, 2 for ultra danger thingy;
+
+const int eyeX[] = {12,10,8,8,10};
+const int eyeY[] = {7,5,6,8,9};
 const char str[] PROGMEM = "GO AWAY!   GO AWAY!  GO AWAY!  GO AWAY! GO AWAY!  GO AWAY!  GO AWAY! GO AWAY! GO AWAY!  GO AWAY!";
 const char safe[] PROGMEM = "SAFE TO APPROACH";
 
@@ -45,32 +48,40 @@ void drawSafeToApproach() {
 
   // Clear any existing drawings.
   matrix.fillScreen(matrix.Color333(0,0,0));
-
   matrix.drawCircle(16, 10, 10, matrix.Color333(0, 7, 0));
   matrix.fillCircle(16, 10, 10, matrix.Color333(0, 7, 0));
 
-  // Write text inside circle
-//  matrix.setCursor(8, 6);
-//  matrix.setTextSize(1);
-//  matrix.setTextWrap(false);
-//
-//  matrix.setTextColor(matrix.Color333(255, 255, 255));
-//  matrix.println("Go!");
-   matrix.drawCircle(11, 8, 3, matrix.Color333(255, 255, 255));
-   matrix.fillCircle(11, 8, 3, matrix.Color333(255, 255, 255));
-
-   matrix.drawCircle(21, 8, 3, matrix.Color333(255, 255, 255));
-   matrix.fillCircle(21, 8, 3, matrix.Color333(255, 255, 255));
-   drawEyes(BLACK);
+  matrix.drawCircle(11, 8, 3, matrix.Color333(255, 255, 255));
+  matrix.fillCircle(11, 8, 3, matrix.Color333(255, 255, 255));
+  matrix.drawCircle(21, 8, 3, matrix.Color333(255, 255, 255));
+  matrix.fillCircle(21, 8, 3, matrix.Color333(255, 255, 255));
+  drawEyes(BLACK,eyePos);
 }
 
-void drawEyes(int color)
-{
-  matrix.drawRect(eyeRightX,7,3, 3, color);
-   matrix.fillRect(eyeRightX,7,3, 3, color);
 
-   matrix.drawRect(eyeLeftX,7,3, 3, color);
-   matrix.fillRect(eyeLeftX,7,3, 3, color);
+void moveEyes()
+{
+  drawEyes(WHITE,eyePos);
+  int r = random(0,10);
+  if(r < 5)
+  {
+    if((++eyePos) > 4)
+      eyePos = 0;
+  }
+  else if((--eyePos) < 0)
+      eyePos = 4;
+    
+  
+}
+void drawEyes(int color, int pos)
+{
+
+  
+  matrix.drawRect(eyeX[eyePos],eyeY[eyePos],3, 3, color);
+   matrix.fillRect(eyeX[eyePos],eyeY[eyePos],3, 3, color);
+
+   matrix.drawRect(eyeX[eyePos]+10,eyeY[eyePos],3, 3, color);
+   matrix.fillRect(eyeX[eyePos]+10,eyeY[eyePos],3, 3, color);
 }
 
 void drawDanger() {
@@ -113,7 +124,7 @@ void flashWarning() {
   clearScreen();
   
   delay(50);
-  int flashes = 50;
+  int flashes = 20;
   while (flashes >= 0) {
 
     //Draw circle
@@ -206,7 +217,6 @@ void scrollSafeText()
     // Move text left (w/wrap), increase hue
     if((--textX) < textMin2) textX = matrix.width();
     hue += 7;
-    Serial.println(textX,textMin);
     if(hue >= 1536) hue -= 1536;
     delay(50);
 }
@@ -216,8 +226,11 @@ void setup() {
    matrix.setTextWrap(false); // Allow text to run off right edge
    matrix.setTextSize(1);
    drawSafeToApproach();
+   randomSeed(analogRead(0));
+   
 }
-
+unsigned long previousMillis = 0;
+unsigned long interval = 3000;
 void loop() {
 
   if (Serial.available() > 0) {
@@ -241,15 +254,25 @@ void loop() {
         state = 0;
         break;
       case 'g': // GO AWAY!!!1!!
-        flashWarning();
-        state = 1;
-        drawDanger();
-        displayStackOverflowBar();
+        if(state == 1){
+          flashWarning();
+          state = 2;
+          drawDanger();
+          displayStackOverflowBar();
+          state = 1;
+        }
         break;
     }
   }
-          if(state == 0)
+    if(state == 0)
     {
+      unsigned long currentMillis = millis();
+ 
+      if(currentMillis - previousMillis > interval) { 
+        previousMillis = currentMillis;
+        moveEyes();
+        drawEyes(BLACK,eyePos);
+      }
       scrollSafeText();
     } 
 }
