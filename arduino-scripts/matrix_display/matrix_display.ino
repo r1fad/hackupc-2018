@@ -230,7 +230,7 @@ void setup() {
    
 }
 unsigned long previousMillis = 0;
-unsigned long interval = 5000;
+unsigned long interval = 3000;
 void loop() {
 
   if (Serial.available() > 0) {
@@ -254,10 +254,13 @@ void loop() {
         state = 0;
         break;
       case 'g': // GO AWAY!!!1!!
-        flashWarning();
-        state = 1;
-        drawDanger();
-        displayStackOverflowBar();
+        if(state == 1){
+          flashWarning();
+          state = 2;
+          drawDanger();
+          displayStackOverflowBar();
+          state = 1;
+        }
         break;
     }
   }
